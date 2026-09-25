@@ -4,7 +4,7 @@ Model Doctor is a Python toolkit for checking common problems in machine learnin
 
 It looks at the dataset, trained model, and training code when available, and helps find problems that can make model results unreliable.
 
-It explains each finding in simple language and shows:
+It explains:
 
 - what the problem is
 - why it matters
@@ -57,7 +57,7 @@ Some examples include:
 - Can build a reference pipeline with supported fixes
 - Runs the audit again after repair for before/after comparison
 
-Model Doctor does not automatically change something when the evidence is not strong enough. Some findings stay open for human review.
+Model Doctor does not automatically change something when the evidence is not strong enough. 
 
 ---
 
