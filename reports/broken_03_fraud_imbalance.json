@@ -1,0 +1,529 @@
+{
+  "created": "2026-09-25 06:36",
+  "health_score": 36,
+  "verdict": "Critical audit issues",
+  "counts": {
+    "critical": 1,
+    "high": 1,
+    "medium": 3,
+    "low": 0
+  },
+  "coverage": {
+    "total": 19,
+    "run": 15,
+    "not_applicable": 4,
+    "errors": 0
+  },
+  "setup": {
+    "model": "GradientBoostingClassifier",
+    "task": "classification",
+    "target": "is_fraud",
+    "train_rows": 15000,
+    "test_rows": 5000,
+    "features": 7,
+    "classes": {
+      "0": 0.9859,
+      "1": 0.0141
+    },
+    "time_col": null,
+    "group_col": null,
+    "reported_metric": "accuracy",
+    "training_code_provided": true,
+    "goal": "Flag fraudulent card transactions in real time."
+  },
+  "test_metrics": {
+    "accuracy": 0.9828,
+    "balanced_accuracy": 0.5124601564763837,
+    "f1_macro": 0.5178831707590537,
+    "minority_class": 1,
+    "minority_recall": 0.02857142857142857,
+    "minority_precision": 0.1,
+    "minority_f1": 0.044444444444444446,
+    "majority_baseline_accuracy": 0.986,
+    "predicted_majority_share": 0.996,
+    "primary_name": "Balanced accuracy",
+    "primary": 0.5124601564763837,
+    "roc_auc": 0.8166661837148652,
+    "pr_auc": 0.0837043286549902
+  },
+  "train_metrics": {
+    "accuracy": 0.9898,
+    "balanced_accuracy": 0.6537917736347528,
+    "f1_macro": 0.7271076947187669,
+    "minority_class": 1,
+    "minority_recall": 0.3080568720379147,
+    "minority_precision": 0.9027777777777778,
+    "minority_f1": 0.45936395759717313,
+    "majority_baseline_accuracy": 0.9859333333333333,
+    "predicted_majority_share": 0.9952,
+    "primary_name": "Balanced accuracy",
+    "primary": 0.6537917736347528,
+    "roc_auc": 0.9565275074756151,
+    "pr_auc": 0.6393111064332898
+  },
+  "findings": [
+    {
+      "check_id": "IMB-001",
+      "category": "imbalance",
+      "title": "The model almost always predicts '0'",
+      "severity": "critical",
+      "confidence": 0.9,
+      "what": "The model predicts '0' for 99.6% of test cases, while 98.6% actually belong to that class. It recalls only 2.9% of the '1' cases.",
+      "why": "The model is strongly biased toward the common class and misses most examples of the rare class. High overall accuracy can hide this behaviour.",
+      "fix": "Compare class weighting, resampling, or a different decision threshold, and judge the result with rare-class recall, precision and F1.",
+      "evidence": {
+        "predicted_majority_share": 0.996,
+        "actual_majority_share": 0.986,
+        "minority_recall": 0.0286,
+        "minority_test_rows": 70
+      },
+      "fix_action": {
+        "type": "class_weight"
+      },
+      "category_label": "Class imbalance"
+    },
+    {
+      "check_id": "METRIC-001",
+      "category": "metrics",
+      "title": "Accuracy alone can hide poor rare-class performance",
+      "severity": "high",
+      "confidence": 0.9,
+      "what": "The model is judged by accuracy from the stated reported metric: 98.3%. The minority class '1' makes up 1.4% of training rows, while an always-majority prediction already scores 98.6% on this test set. The model recalls 2.9% of the '1' test cases.",
+      "why": "With imbalanced classes, accuracy can stay high even when the model performs poorly on the rare class. Using accuracy alone can therefore hide behaviour that matters for the prediction goal.",
+      "fix": "Report recall, precision and F1 for '1', and include PR AUC when probability scores are available. Compare accuracy with the always-majority baseline instead of using it alone.",
+      "evidence": {
+        "accuracy": 0.9828,
+        "balanced_accuracy": 0.5125,
+        "f1_macro": 0.5179,
+        "minority_class": 1,
+        "minority_recall": 0.0286,
+        "minority_precision": 0.1,
+        "minority_f1": 0.0444,
+        "majority_baseline_accuracy": 0.986,
+        "predicted_majority_share": 0.996,
+        "primary_name": "Balanced accuracy",
+        "primary": 0.5125,
+        "roc_auc": 0.8167,
+        "pr_auc": 0.0837,
+        "training_minority_share": 0.0141,
+        "minority_test_rows": 70
+      },
+      "fix_action": {
+        "type": "report_balanced_metrics"
+      },
+      "category_label": "Misleading metrics"
+    },
+    {
+      "check_id": "DQ-002",
+      "category": "data_quality",
+      "title": "Placeholder numbers may represent missing values",
+      "severity": "medium",
+      "confidence": 0.75,
+      "what": "These columns contain a repeated code far outside the usual training range: 'distance_from_home_km' uses -999 (train 5.0%, test 4.8%; usual range 0.88 to 84.172).",
+      "why": "A placeholder such as -999 can act like a real extreme measurement. This can distort scaling, averages, and model decisions when the code really means 'unknown'.",
+      "fix": "Confirm that each code means a missing value. If it does, replace it with NaN, add a missing-value flag when useful, and impute inside the Pipeline.",
+      "evidence": {
+        "columns": {
+          "distance_from_home_km": {
+            "value": -999,
+            "train_share": 0.0503,
+            "test_share": 0.0484,
+            "normal_range": [
+              0.88,
+              84.172
+            ]
+          }
+        },
+        "automatic_fix": false,
+        "note": "The values need confirmation before they are changed to missing values."
+      },
+      "fix_action": null,
+      "category_label": "Data quality"
+    },
+    {
+      "check_id": "IMB-002",
+      "category": "imbalance",
+      "title": "Severe class imbalance has no explicit handling",
+      "severity": "medium",
+      "confidence": 0.7,
+      "what": "'1' makes up only 1.4% of the training data, and no class weighting, resampling, or sample-weight handling is detected. The model recalls 2.9% of the '1' test cases (F1 4.4%).",
+      "why": "Without an explicit imbalance strategy, many models can favour common classes. Whether weighting or resampling helps should be checked against rare-class metrics rather than assumed.",
+      "fix": "Compare class_weight='balanced' or an appropriate resampling method, then evaluate recall, precision and F1 for the rare class.",
+      "evidence": {
+        "minority_share": 0.0141,
+        "class_weight": "None",
+        "minority_test_rows": 70,
+        "minority_recall": 0.0286,
+        "minority_f1": 0.0444
+      },
+      "fix_action": {
+        "type": "class_weight"
+      },
+      "category_label": "Class imbalance"
+    },
+    {
+      "check_id": "OVERFIT-001",
+      "category": "overfitting",
+      "title": "A large train-test gap suggests overfitting",
+      "severity": "medium",
+      "confidence": 0.65,
+      "what": "Balanced accuracy is 65.4% on training data and 51.2% on test data, a gap of 14.1%.",
+      "why": "A large gap is consistent with the model learning patterns that do not generalize to the test data. Data-quality or distribution problems can also increase this gap, so those findings should be checked before treating overfitting as the only cause.",
+      "fix": "First check whether train and test data are comparable. If they are, reduce model complexity: require more samples per leaf (min_samples_leaf). Tune changes with appropriate cross-validation.",
+      "evidence": {
+        "train_score": 0.6538,
+        "test_score": 0.5125,
+        "gap": 0.1413,
+        "metric": "Balanced accuracy"
+      },
+      "fix_action": {
+        "type": "regularize"
+      },
+      "category_label": "Overfitting"
+    }
+  ],
+  "checks": [
+    {
+      "check_id": "DQ-000",
+      "name": "Model runs on the data",
+      "category": "data_quality",
+      "description": "Checks that the model can make predictions on the provided data.",
+      "status": "passed",
+      "note": ""
+    },
+    {
+      "check_id": "DQ-001",
+      "name": "Missing values handled differently in train and test",
+      "category": "data_quality",
+      "description": "Compares missing-value rates per column between training and test data.",
+      "status": "passed",
+      "note": ""
+    },
+    {
+      "check_id": "DQ-002",
+      "name": "Missing values disguised as numbers",
+      "category": "data_quality",
+      "description": "Finds placeholder codes such as -999 or 9999 that can stand in for unknown values.",
+      "status": "flagged",
+      "note": ""
+    },
+    {
+      "check_id": "DQ-003",
+      "name": "New categories that only appear in test data",
+      "category": "data_quality",
+      "description": "Lists text categories in the test data that do not appear in the training data.",
+      "status": "skipped",
+      "note": "No text/category columns."
+    },
+    {
+      "check_id": "DQ-004",
+      "name": "Category codes that mean different things in train and test",
+      "category": "data_quality",
+      "description": "Checks whether number-coded categories behave differently between training and test data and whether a remapping explains the difference.",
+      "status": "passed",
+      "note": ""
+    },
+    {
+      "check_id": "DQ-005",
+      "name": "Test data looks different from training data",
+      "category": "data_quality",
+      "description": "Measures numeric distribution shift between training and test data with PSI.",
+      "status": "passed",
+      "note": ""
+    },
+    {
+      "check_id": "LEAK-001",
+      "name": "Columns that give away the answer",
+      "category": "leakage",
+      "description": "Tests every feature on its own. A feature with unusually high test skill can be a target proxy and needs a timing or meaning check.",
+      "status": "passed",
+      "note": ""
+    },
+    {
+      "check_id": "LEAK-002",
+      "name": "Preprocessing that learns from the test data",
+      "category": "leakage",
+      "description": "Checks whether fitted preprocessing statistics match train + test data instead of training data only, and checks for full-data scaling fingerprints.",
+      "status": "passed",
+      "note": ""
+    },
+    {
+      "check_id": "LEAK-003",
+      "name": "Leaky steps in the training code",
+      "category": "leakage",
+      "description": "Reads the training script or notebook without running it and flags preprocessing fitted before evaluation, fitted on test data, or whole-dataset imputation.",
+      "status": "passed",
+      "note": ""
+    },
+    {
+      "check_id": "LEAK-004",
+      "name": "Training on the future (time leakage)",
+      "category": "leakage",
+      "description": "Checks whether training and test periods overlap when time order matters.",
+      "status": "skipped",
+      "note": "The data has no date/time column."
+    },
+    {
+      "check_id": "LEAK-005",
+      "name": "ID columns used as features",
+      "category": "leakage",
+      "description": "Flags likely row or entity identifiers that the model uses as features.",
+      "status": "passed",
+      "note": ""
+    },
+    {
+      "check_id": "CONT-001",
+      "name": "Same rows in training and test data",
+      "category": "contamination",
+      "description": "Looks for test feature rows that also appear in the training data.",
+      "status": "passed",
+      "note": ""
+    },
+    {
+      "check_id": "CONT-002",
+      "name": "Same people/entities in training and test data",
+      "category": "contamination",
+      "description": "Checks whether repeated customer, patient, device, or other group values appear on both sides of a split.",
+      "status": "skipped",
+      "note": "The data has no repeated group or ID column to compare."
+    },
+    {
+      "check_id": "CONT-003",
+      "name": "Cross-validation that ignores groups or time",
+      "category": "contamination",
+      "description": "Reads the training code and checks whether validation respects repeated groups or time order when those structures matter.",
+      "status": "skipped",
+      "note": "The audit has no confirmed group or time structure that requires special validation."
+    },
+    {
+      "check_id": "METRIC-001",
+      "name": "Accuracy hiding poor results on rare cases",
+      "category": "metrics",
+      "description": "On imbalanced classification data, checks whether accuracy is used as the main reported metric and compares it with rare-class performance.",
+      "status": "flagged",
+      "note": ""
+    },
+    {
+      "check_id": "OVERFIT-001",
+      "name": "Much better on training data than on test data",
+      "category": "overfitting",
+      "description": "Compares the model's primary score on training and test data.",
+      "status": "flagged",
+      "note": ""
+    },
+    {
+      "check_id": "OVERFIT-002",
+      "name": "Suspiciously perfect test score",
+      "category": "overfitting",
+      "description": "Flags near-perfect test scores that deserve a leakage or contamination review.",
+      "status": "passed",
+      "note": ""
+    },
+    {
+      "check_id": "IMB-001",
+      "name": "Model ignores the rare class",
+      "category": "imbalance",
+      "description": "Checks whether the model collapses toward the most common class or misses whole classes.",
+      "status": "flagged",
+      "note": ""
+    },
+    {
+      "check_id": "IMB-002",
+      "name": "Imbalanced data with no counter-measure",
+      "category": "imbalance",
+      "description": "When one training class is rare, checks whether the model or training code uses class weighting, resampling, or sample weights.",
+      "status": "flagged",
+      "note": ""
+    }
+  ],
+  "fix": {
+    "applied": [
+      {
+        "change": "Gives the rare class extra weight with balanced sample weights.",
+        "because": [
+          "IMB-001",
+          "IMB-002"
+        ]
+      },
+      {
+        "change": "Makes the estimator more regularized: min_samples_leaf=10.",
+        "because": [
+          "OVERFIT-001"
+        ]
+      },
+      {
+        "change": "Builds train-only preprocessing for the reference model: fills missing values, scales numeric columns, and one-hot encodes categorical columns with unknown-category handling.",
+        "because": []
+      },
+      {
+        "change": "Reports recall, precision, F1 and AUC for the rare class instead of accuracy alone (a reporting change only; it does not change training).",
+        "because": [
+          "METRIC-001"
+        ]
+      }
+    ],
+    "rounds": [
+      {
+        "round": 1,
+        "changes": [
+          {
+            "change": "Gives the rare class extra weight with balanced sample weights.",
+            "because": [
+              "IMB-001",
+              "IMB-002"
+            ]
+          },
+          {
+            "change": "Makes the estimator more regularized: min_samples_leaf=10.",
+            "because": [
+              "OVERFIT-001"
+            ]
+          },
+          {
+            "change": "Builds train-only preprocessing for the reference model: fills missing values, scales numeric columns, and one-hot encodes categorical columns with unknown-category handling.",
+            "because": []
+          },
+          {
+            "change": "Reports recall, precision, F1 and AUC for the rare class instead of accuracy alone (a reporting change only; it does not change training).",
+            "because": [
+              "METRIC-001"
+            ]
+          }
+        ],
+        "reaudit": [
+          {
+            "check_id": "DQ-002",
+            "title": "Placeholder numbers may represent missing values",
+            "severity": "medium"
+          },
+          {
+            "check_id": "OVERFIT-001",
+            "title": "A large train-test gap suggests overfitting",
+            "severity": "medium"
+          }
+        ]
+      }
+    ],
+    "eval_rows_changed": false,
+    "model_rebuilt": true,
+    "reporting_changed": true,
+    "not_fixable": [],
+    "before_test_metrics": {
+      "accuracy": 0.9828,
+      "balanced_accuracy": 0.5124601564763837,
+      "f1_macro": 0.5178831707590537,
+      "minority_class": 1,
+      "minority_recall": 0.02857142857142857,
+      "minority_precision": 0.1,
+      "minority_f1": 0.044444444444444446,
+      "majority_baseline_accuracy": 0.986,
+      "predicted_majority_share": 0.996,
+      "primary_name": "Balanced accuracy",
+      "primary": 0.5124601564763837,
+      "roc_auc": 0.8166661837148652,
+      "pr_auc": 0.0837043286549902
+    },
+    "after_test_metrics": {
+      "accuracy": 0.8208,
+      "balanced_accuracy": 0.7260504201680672,
+      "f1_macro": 0.49502600616068276,
+      "minority_class": 1,
+      "minority_recall": 0.6285714285714286,
+      "minority_precision": 0.04814004376367615,
+      "minority_f1": 0.08943089430894309,
+      "majority_baseline_accuracy": 0.986,
+      "predicted_majority_share": 0.8172,
+      "primary_name": "Balanced accuracy",
+      "primary": 0.7260504201680672,
+      "roc_auc": 0.8030759200231818,
+      "pr_auc": 0.1273775497503765
+    },
+    "before_train_metrics": {
+      "accuracy": 0.9898,
+      "balanced_accuracy": 0.6537917736347528,
+      "f1_macro": 0.7271076947187669,
+      "minority_class": 1,
+      "minority_recall": 0.3080568720379147,
+      "minority_precision": 0.9027777777777778,
+      "minority_f1": 0.45936395759717313,
+      "majority_baseline_accuracy": 0.9859333333333333,
+      "predicted_majority_share": 0.9952,
+      "primary_name": "Balanced accuracy",
+      "primary": 0.6537917736347528,
+      "roc_auc": 0.9565275074756151,
+      "pr_auc": 0.6393111064332898
+    },
+    "after_train_metrics": {
+      "accuracy": 0.8308,
+      "balanced_accuracy": 0.8651399352471207,
+      "f1_macro": 0.5182553997027483,
+      "minority_class": 1,
+      "minority_recall": 0.9004739336492891,
+      "minority_precision": 0.07018840044329516,
+      "minority_f1": 0.13022618231665525,
+      "majority_baseline_accuracy": 0.9859333333333333,
+      "predicted_majority_share": 0.8195333333333333,
+      "primary_name": "Balanced accuracy",
+      "primary": 0.8651399352471207,
+      "roc_auc": 0.9380803395888901,
+      "pr_auc": 0.25126381196806397
+    },
+    "issues_before": 5,
+    "issues_after": 2,
+    "not_open_after_update": [
+      "IMB-001",
+      "IMB-002",
+      "METRIC-001"
+    ],
+    "remaining": [
+      {
+        "check_id": "DQ-002",
+        "category": "data_quality",
+        "title": "Placeholder numbers may represent missing values",
+        "severity": "medium",
+        "confidence": 0.75,
+        "what": "These columns contain a repeated code far outside the usual training range: 'distance_from_home_km' uses -999 (train 5.0%, test 4.8%; usual range 0.88 to 84.172).",
+        "why": "A placeholder such as -999 can act like a real extreme measurement. This can distort scaling, averages, and model decisions when the code really means 'unknown'.",
+        "fix": "Confirm that each code means a missing value. If it does, replace it with NaN, add a missing-value flag when useful, and impute inside the Pipeline.",
+        "evidence": {
+          "columns": {
+            "distance_from_home_km": {
+              "value": -999,
+              "train_share": 0.0503,
+              "test_share": 0.0484,
+              "normal_range": [
+                0.88,
+                84.172
+              ]
+            }
+          },
+          "automatic_fix": false,
+          "note": "The values need confirmation before they are changed to missing values."
+        },
+        "fix_action": null,
+        "category_label": "Data quality"
+      },
+      {
+        "check_id": "OVERFIT-001",
+        "category": "overfitting",
+        "title": "A large train-test gap suggests overfitting",
+        "severity": "medium",
+        "confidence": 0.65,
+        "what": "Balanced accuracy is 86.5% on training data and 72.6% on test data, a gap of 13.9%.",
+        "why": "A large gap is consistent with the model learning patterns that do not generalize to the test data. Data-quality or distribution problems can also increase this gap, so those findings should be checked before treating overfitting as the only cause.",
+        "fix": "First check whether train and test data are comparable. If they are, reduce model complexity: simplify the model or add regularisation; use more training data when possible. Tune changes with appropriate cross-validation.",
+        "evidence": {
+          "train_score": 0.8651,
+          "test_score": 0.7261,
+          "gap": 0.1391,
+          "metric": "Balanced accuracy"
+        },
+        "fix_action": {
+          "type": "regularize"
+        },
+        "category_label": "Overfitting"
+      }
+    ],
+    "error": null
+  }
+}

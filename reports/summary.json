@@ -1,0 +1,121 @@
+[
+  {
+    "name": "broken_01_loan_leakage",
+    "model": "LogisticRegression",
+    "expected": [
+      "LEAK-001",
+      "LEAK-002",
+      "LEAK-003",
+      "METRIC-001"
+    ],
+    "caught": [
+      "LEAK-001",
+      "LEAK-002",
+      "LEAK-003",
+      "METRIC-001"
+    ],
+    "missed": [],
+    "extra": [],
+    "original_health_score": 66,
+    "issues_before": 4,
+    "issues_after": 1,
+    "metric": "Balanced accuracy",
+    "m_before": 0.9818362388784925,
+    "m_after": 0.9818362388784925,
+    "repair": "reference rebuild"
+  },
+  {
+    "name": "broken_02_churn_contamination",
+    "model": "RandomForestClassifier",
+    "expected": [
+      "CONT-001",
+      "CONT-002",
+      "CONT-003",
+      "OVERFIT-001"
+    ],
+    "caught": [
+      "CONT-001",
+      "CONT-002",
+      "CONT-003",
+      "OVERFIT-001"
+    ],
+    "missed": [],
+    "extra": [],
+    "original_health_score": 36,
+    "issues_before": 4,
+    "issues_after": 0,
+    "metric": "Balanced accuracy",
+    "m_before": 0.7665698760400748,
+    "m_after": 0.6925782548727217,
+    "repair": "reference rebuild"
+  },
+  {
+    "name": "broken_03_fraud_imbalance",
+    "model": "GradientBoostingClassifier",
+    "expected": [
+      "DQ-002",
+      "IMB-001",
+      "IMB-002",
+      "METRIC-001"
+    ],
+    "caught": [
+      "DQ-002",
+      "IMB-001",
+      "IMB-002",
+      "METRIC-001"
+    ],
+    "missed": [],
+    "extra": [
+      "OVERFIT-001"
+    ],
+    "original_health_score": 36,
+    "issues_before": 5,
+    "issues_after": 2,
+    "metric": "Balanced accuracy",
+    "m_before": 0.5124601564763837,
+    "m_after": 0.7260504201680672,
+    "repair": "reference rebuild"
+  },
+  {
+    "name": "broken_04_store_demand_time",
+    "model": "HistGradientBoostingClassifier",
+    "expected": [
+      "CONT-003",
+      "DQ-004",
+      "LEAK-003",
+      "LEAK-004"
+    ],
+    "caught": [
+      "CONT-003",
+      "DQ-004",
+      "LEAK-003",
+      "LEAK-004"
+    ],
+    "missed": [],
+    "extra": [
+      "OVERFIT-001"
+    ],
+    "original_health_score": 30,
+    "issues_before": 6,
+    "issues_after": 1,
+    "metric": "Balanced accuracy",
+    "m_before": 0.6085813891123626,
+    "m_after": 0.9103999923531811,
+    "repair": "reference rebuild"
+  },
+  {
+    "name": "clean_05_hr_attrition",
+    "model": "Pipeline: ColumnTransformer -> RandomForestClassifier",
+    "expected": [],
+    "caught": [],
+    "missed": [],
+    "extra": [],
+    "original_health_score": 100,
+    "issues_before": 0,
+    "issues_after": 0,
+    "metric": "Balanced accuracy",
+    "m_before": 0.649485153256705,
+    "m_after": 0.649485153256705,
+    "repair": "not needed"
+  }
+]

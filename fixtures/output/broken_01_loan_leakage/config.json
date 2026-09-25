@@ -1,0 +1,9 @@
+{
+  "model": "model.joblib",
+  "train": "train.csv",
+  "test": "test.csv",
+  "code": "train_pipeline.py",
+  "target": "default",
+  "reported_metric": "accuracy",
+  "goal": "Predict which loan applicants will default, at application time."
+}

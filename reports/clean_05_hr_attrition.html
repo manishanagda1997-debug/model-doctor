@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Model Doctor audit: left_company</title><style>
+:root{--paper:#f6f8f7;--card:#ffffff;--ink:#17212f;--muted:#566173;--rule:#d7ddd9;
+--critical:#b42318;--high:#c2410c;--medium:#976b00;--low:#3e6f68;--ok:#2f7d4f;--accent:#1f4e79;
+--serif:Charter,"Bitstream Charter","Sitka Text",Cambria,Georgia,serif;
+--sans:-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.6 var(--sans)}
+main{max-width:860px;margin:0 auto;padding:40px 24px 80px}
+h1,h2,h3{font-family:var(--serif);line-height:1.25;margin:0}
+h1{font-size:2.1rem;font-weight:700}
+h2{font-size:1.45rem;margin:48px 0 12px;padding-top:20px;border-top:1px solid var(--rule)}
+h3{font-size:1.15rem}
+p{margin:.4em 0 .8em;max-width:72ch}
+.brand{display:flex;justify-content:space-between;gap:16px;color:var(--muted);font-size:.9rem;margin-bottom:28px}
+.brand b{color:var(--ink)}
+.chart{display:grid;grid-template-columns:1fr auto;gap:24px;align-items:start;background:var(--card);
+border:1px solid var(--rule);border-left:8px solid var(--sev,var(--ok));border-radius:6px;padding:26px 28px}
+.chart .lead{font-size:1.1rem;color:var(--muted);margin-top:8px}
+.score{text-align:center;min-width:120px}
+.score .num{font-family:var(--serif);font-size:3rem;font-weight:700;line-height:1;color:var(--sev,var(--ok))}
+.score .lbl{font-size:.85rem;color:var(--muted)}
+.meter{height:8px;border-radius:4px;background:#e6ebe8;overflow:hidden;margin-top:8px}
+.meter span{display:block;height:100%;background:var(--sev,var(--ok))}
+dl.facts{display:grid;grid-template-columns:max-content 1fr;gap:4px 18px;margin:18px 0 0;font-size:.92rem}
+dl.facts dt{color:var(--muted)}
+dl.facts dd{margin:0}
+ol.short{padding-left:1.3em}
+ol.short li{margin:.35em 0}
+.finding{background:var(--card);border:1px solid var(--rule);border-left:6px solid var(--c);border-radius:6px;
+padding:20px 24px;margin:16px 0}
+.finding header{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap}
+.tag{font-size:.8rem;font-weight:600;color:#fff;background:var(--c);padding:2px 9px;border-radius:3px;white-space:nowrap}
+.cat{font-size:.85rem;color:var(--muted)}
+.sure{display:flex;align-items:center;gap:10px;font-size:.88rem;color:var(--muted);margin:10px 0 6px}
+.sure .meter{width:140px;margin:0}
+.sure .meter span{background:var(--c)}
+.part{margin-top:10px}
+.part h4{margin:0;font-size:.95rem;font-family:var(--sans)}
+details{margin-top:12px;font-size:.88rem}
+summary{cursor:pointer;color:var(--accent)}
+summary:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+pre{background:#f1f4f2;border:1px solid var(--rule);border-radius:4px;padding:12px;overflow-x:auto;font-size:.8rem;line-height:1.45}
+.table-wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.92rem;background:var(--card)}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font-weight:600;background:#eef2f0}
+td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.hint{display:block;color:var(--muted);font-size:.8rem}
+.st-flagged{color:var(--critical);font-weight:600}
+.st-passed{color:var(--ok)}
+.st-skipped,.st-error{color:var(--muted)}
+.changes li{margin:.3em 0}
+h4.round{font-family:var(--sans);font-size:1rem;margin:14px 0 4px}
+.reaudit{font-size:.95rem}
+.note{font-size:.9rem;color:var(--muted)}
+.coverage{font-size:.92rem;color:var(--muted);margin:14px 0 0}
+.coverage b{color:var(--ink)}
+.callout{background:#eef3f8;border:1px solid #cddbe8;border-radius:6px;padding:14px 18px;margin:14px 0}
+.callout.error{background:#fff1f0;border-color:#f0c7c2}
+footer{margin-top:56px;color:var(--muted);font-size:.85rem}
+@media (max-width:640px){.chart{grid-template-columns:1fr}.score{text-align:left}h1{font-size:1.7rem}}
+@media print{body{background:#fff}main{padding:0}.finding,.chart{break-inside:avoid}details{display:block}details>*{display:block}}
+</style></head>
+<body><main>
+<div class="brand"><span><b>Model Doctor</b> audit report</span><span>2026-09-25 06:36</span></div>
+<section class="chart" style="--sev:var(--ok)">
+  <div><h1>No issues detected in completed checks</h1><p class="lead">The 14 completed checks detect no issues within their scope.</p><dl class="facts"><dt>Model</dt><dd>Pipeline: ColumnTransformer -&gt; RandomForestClassifier</dd><dt>Predicting</dt><dd>&#x27;left_company&#x27; (classification)</dd><dt>Goal</dt><dd>Predict which employees are likely to leave in the next year.</dd><dt>Data</dt><dd>2,250 training rows, 750 test rows, 6 input columns</dd><dt>Outcome mix</dt><dd>&#x27;0&#x27; 76.8%, &#x27;1&#x27; 23.2%</dd><dt>Training code</dt><dd>included in the audit</dd></dl></div>
+  <div class="score"><div class="num">100</div><div class="lbl">health score out of 100</div><div class="meter"><span style="width:100%"></span></div></div>
+</section>
+<p class="coverage"><b>Audit coverage:</b> 14 of 19 checks run, 5 not applicable, 0 errors. Skipped checks are either not applicable to this setup or do not have the required input or evidence. A check marked &#x27;Cannot run&#x27; ended with an error and makes the audit incomplete.</p>
+
+<h2>Findings, most serious first</h2>
+<p>Each finding says what is observed, why it matters and what to do.
+"Evidence confidence" is a rule-based score of how strongly the available
+signals support the finding. It is not a statistical probability.</p>
+<p>No issues are detected in the completed checks. The table below shows every check and its result.</p>
+
+<h2>How the model scores today</h2>
+<div class="table-wrap"><table><thead><tr><th>Measure (on test data)</th><th>Value</th></tr></thead>
+<tbody><tr><td>Accuracy<span class='hint'>Share of all predictions that are right</span></td><td class='n'>66.8%</td></tr>
+<tr><td>Balanced accuracy<span class='hint'>Average hit rate per class, so rare classes count equally</span></td><td class='n'>64.9%</td></tr>
+<tr><td>Rare cases caught<span class='hint'>Recall: share of the rare class the model finds</span></td><td class='n'>61.5%</td></tr>
+<tr><td>Alerts that are right<span class='hint'>Precision: when the model flags the rare class, how often it is correct</span></td><td class='n'>37.0%</td></tr>
+<tr><td>F1 for the rare class<span class='hint'>Balance of &#x27;caught&#x27; and &#x27;right when flagged&#x27;</span></td><td class='n'>46.2%</td></tr>
+<tr><td>Ranking quality (ROC AUC)<span class='hint'>0.5 = random, 1.0 = perfect ordering for a binary ranking task</span></td><td class='n'>0.705</td></tr>
+<tr><td>Precision-recall AUC<span class='hint'>Ranking quality focused on the positive or rare class</span></td><td class='n'>0.409</td></tr></tbody></table></div>
+<h2>What Model Doctor checks</h2>
+<div class="table-wrap"><table><thead><tr><th>Check</th><th>Area</th><th>Result</th></tr></thead>
+<tbody><tr><td>Model runs on the data<span class='hint'>Checks that the model can make predictions on the provided data.</span></td><td>Data quality</td><td class='st-passed'>No issue detected</td></tr><tr><td>Missing values handled differently in train and test<span class='hint'>Compares missing-value rates per column between training and test data.</span></td><td>Data quality</td><td class='st-passed'>No issue detected</td></tr><tr><td>Missing values disguised as numbers<span class='hint'>Finds placeholder codes such as -999 or 9999 that can stand in for unknown values.</span></td><td>Data quality</td><td class='st-passed'>No issue detected</td></tr><tr><td>New categories that only appear in test data<span class='hint'>Lists text categories in the test data that do not appear in the training data.</span></td><td>Data quality</td><td class='st-passed'>No issue detected</td></tr><tr><td>Category codes that mean different things in train and test<span class='hint'>Checks whether number-coded categories behave differently between training and test data and whether a remapping explains the difference.</span></td><td>Data quality</td><td class='st-passed'>No issue detected</td></tr><tr><td>Test data looks different from training data<span class='hint'>Measures numeric distribution shift between training and test data with PSI.</span></td><td>Data quality</td><td class='st-passed'>No issue detected</td></tr><tr><td>Columns that give away the answer<span class='hint'>Tests every feature on its own. A feature with unusually high test skill can be a target proxy and needs a timing or meaning check.</span></td><td>Data leakage</td><td class='st-passed'>No issue detected</td></tr><tr><td>Preprocessing that learns from the test data<span class='hint'>Checks whether fitted preprocessing statistics match train + test data instead of training data only, and checks for full-data scaling fingerprints.</span></td><td>Data leakage</td><td class='st-passed'>No issue detected</td></tr><tr><td>Leaky steps in the training code<span class='hint'>Reads the training script or notebook without running it and flags preprocessing fitted before evaluation, fitted on test data, or whole-dataset imputation.</span></td><td>Data leakage</td><td class='st-passed'>No issue detected</td></tr><tr><td>Training on the future (time leakage)<span class='hint'>Checks whether training and test periods overlap when time order matters.</span></td><td>Data leakage</td><td class='st-skipped'>Not applicable<span class=hint>The data has no date/time column.</span></td></tr><tr><td>ID columns used as features<span class='hint'>Flags likely row or entity identifiers that the model uses as features.</span></td><td>Data leakage</td><td class='st-passed'>No issue detected</td></tr><tr><td>Same rows in training and test data<span class='hint'>Looks for test feature rows that also appear in the training data.</span></td><td>Train/test contamination</td><td class='st-passed'>No issue detected</td></tr><tr><td>Same people/entities in training and test data<span class='hint'>Checks whether repeated customer, patient, device, or other group values appear on both sides of a split.</span></td><td>Train/test contamination</td><td class='st-skipped'>Not applicable<span class=hint>The data has no repeated group or ID column to compare.</span></td></tr><tr><td>Cross-validation that ignores groups or time<span class='hint'>Reads the training code and checks whether validation respects repeated groups or time order when those structures matter.</span></td><td>Train/test contamination</td><td class='st-skipped'>Not applicable<span class=hint>The audit has no confirmed group or time structure that requires special validation.</span></td></tr><tr><td>Accuracy hiding poor results on rare cases<span class='hint'>On imbalanced classification data, checks whether accuracy is used as the main reported metric and compares it with rare-class performance.</span></td><td>Misleading metrics</td><td class='st-skipped'>Not applicable<span class=hint>Classes are reasonably balanced (smallest training class = 23.2%).</span></td></tr><tr><td>Much better on training data than on test data<span class='hint'>Compares the model&#x27;s primary score on training and test data.</span></td><td>Overfitting</td><td class='st-passed'>No issue detected</td></tr><tr><td>Suspiciously perfect test score<span class='hint'>Flags near-perfect test scores that deserve a leakage or contamination review.</span></td><td>Overfitting</td><td class='st-passed'>No issue detected</td></tr><tr><td>Model ignores the rare class<span class='hint'>Checks whether the model collapses toward the most common class or misses whole classes.</span></td><td>Class imbalance</td><td class='st-passed'>No issue detected</td></tr><tr><td>Imbalanced data with no counter-measure<span class='hint'>When one training class is rare, checks whether the model or training code uses class weighting, resampling, or sample weights.</span></td><td>Class imbalance</td><td class='st-skipped'>Not applicable<span class=hint>Smallest class is 23.2% of the training data; this check treats that as outside severe imbalance.</span></td></tr></tbody></table></div>
+<h2>Words used in this report</h2><dl class="facts"><dt><b>Training data</b></dt><dd>The examples the model learns from.</dd><dt><b>Test data</b></dt><dd>Examples kept aside to evaluate the model after training.</dd><dt><b>Data leakage</b></dt><dd>Information unavailable at real prediction time enters model development or evaluation, which can make results look better than they will be in use.</dd><dt><b>Overfitting</b></dt><dd>The model performs much better on training data than on unseen data, often because it learns training-specific patterns.</dd><dt><b>Class imbalance</b></dt><dd>One outcome is much rarer than another, which can make overall accuracy hide poor rare-class performance.</dd><dt><b>Recall</b></dt><dd>Of all real cases in a class, the share the model identifies correctly.</dd><dt><b>Precision</b></dt><dd>Of all cases predicted as a class, the share that really belong to that class.</dd><dt><b>Evidence confidence</b></dt><dd>A rule-based score of how strongly the available signals support a finding. It is not a statistical probability.</dd><dt><b>Health score</b></dt><dd>A heuristic summary for prioritising: 100 minus points for findings, weighted by severity and evidence confidence. It is not a probability or a production certification.</dd><dt><b>Reference rebuild</b></dt><dd>A comparison pipeline that Model Doctor builds with the same estimator type, train-only preprocessing and supported automatic repairs. Its results are diagnostic, not a final untouched estimate.</dd></dl>
+<footer><p>This audit covers common ML failure patterns in the data, model and training code. It does not check fairness, security, privacy, latency or business fit, so it is not a deployment approval.</p>
+<p>Severity: critical &gt; high &gt; medium &gt; low.
+When available, the health score is a heuristic summary for prioritising:
+it starts at 100 and loses points for findings, weighted by severity and
+evidence confidence. It is not a probability or a production certification.
+The report hides the health score when no checks complete or when any check
+ends with an error. To save as PDF, use your browser's Print &gt; Save as PDF.</p>
+</footer>
+</main></body></html>

@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Model Doctor: demo results</title>
+<style>
+body {
+    font: 16px/1.55 -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background: #f6f8f7;
+    color: #17212f;
+    margin: 0;
+}
+main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 24px;
+}
+h1 {
+    font-family: Charter, Georgia, serif;
+}
+table {
+    border-collapse: collapse;
+    width: 100%;
+    background: #fff;
+}
+th,
+td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #d7ddd9;
+    text-align: left;
+    vertical-align: top;
+}
+th {
+    background: #eef2f0;
+}
+.n {
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+a {
+    color: #1f4e79;
+}
+.wrap {
+    overflow-x: auto;
+}
+</style>
+</head>
+<body>
+<main>
+
+<h1>Model Doctor: results on our test pipelines</h1>
+
+<p>
+Four pipelines contain deliberate bugs, and one clean control pipeline
+contains none. Model Doctor audits each pipeline and, when supported
+repairs are available, builds a reference rebuild and audits it again.
+The before/after values are diagnostic comparisons, not untouched final
+performance estimates. A lower post-repair metric can indicate that the
+original evaluation was optimistic.
+</p>
+
+<p>
+The health score is shown for the original audit only. Checks that read the
+original training code do not run on the reference rebuild, so a score for
+the rebuild does not measure the same things.
+</p>
+
+<div class="wrap">
+<table>
+
+<thead>
+<tr>
+<th>Pipeline</th>
+<th>Expected detector checks</th>
+<th>Original health score</th>
+<th>Findings</th>
+<th>Primary test metric</th>
+<th>Repair</th>
+</tr>
+</thead>
+
+<tbody>
+<tr><td><a href='broken_01_loan_leakage.html'>broken_01_loan_leakage</a><br><small>LogisticRegression</small></td><td>LEAK-001, LEAK-002, LEAK-003, METRIC-001</td><td class=n>66</td><td>4 in original audit<br>1 still open</td><td>Balanced accuracy<br><span class=n>98.2% &rarr; 98.2%</span></td><td>reference rebuild</td></tr><tr><td><a href='broken_02_churn_contamination.html'>broken_02_churn_contamination</a><br><small>RandomForestClassifier</small></td><td>CONT-001, CONT-002, CONT-003, OVERFIT-001</td><td class=n>36</td><td>4 in original audit<br>0 still open</td><td>Balanced accuracy<br><span class=n>76.7% &rarr; 69.3%</span></td><td>reference rebuild</td></tr><tr><td><a href='broken_03_fraud_imbalance.html'>broken_03_fraud_imbalance</a><br><small>GradientBoostingClassifier</small></td><td>DQ-002, IMB-001, IMB-002, METRIC-001<br><small>additional findings: OVERFIT-001</small></td><td class=n>36</td><td>5 in original audit<br>2 still open</td><td>Balanced accuracy<br><span class=n>51.2% &rarr; 72.6%</span></td><td>reference rebuild</td></tr><tr><td><a href='broken_04_store_demand_time.html'>broken_04_store_demand_time</a><br><small>HistGradientBoostingClassifier</small></td><td>CONT-003, DQ-004, LEAK-003, LEAK-004<br><small>additional findings: OVERFIT-001</small></td><td class=n>30</td><td>6 in original audit<br>1 still open</td><td>Balanced accuracy<br><span class=n>60.9% &rarr; 91.0%</span></td><td>reference rebuild</td></tr><tr><td><a href='clean_05_hr_attrition.html'>clean_05_hr_attrition</a><br><small>Pipeline: ColumnTransformer -&gt; RandomForestClassifier</small></td><td>none (clean control)</td><td class=n>100</td><td>0 in original audit<br>0 still open</td><td>Balanced accuracy<br><span class=n>64.9% &rarr; 64.9%</span></td><td>not needed</td></tr>
+</tbody>
+
+</table>
+</div>
+
+</main>
+</body>
+</html>

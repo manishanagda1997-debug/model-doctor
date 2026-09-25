@@ -1,0 +1,452 @@
+{
+  "created": "2026-09-25 06:35",
+  "health_score": 36,
+  "verdict": "High audit risk",
+  "counts": {
+    "critical": 0,
+    "high": 4,
+    "medium": 0,
+    "low": 0
+  },
+  "coverage": {
+    "total": 19,
+    "run": 15,
+    "not_applicable": 4,
+    "errors": 0
+  },
+  "setup": {
+    "model": "RandomForestClassifier",
+    "task": "classification",
+    "target": "churned",
+    "train_rows": 3691,
+    "test_rows": 1231,
+    "features": 9,
+    "classes": {
+      "0": 0.7451,
+      "1": 0.2549
+    },
+    "time_col": null,
+    "group_col": "customer_id",
+    "reported_metric": "accuracy",
+    "training_code_provided": true,
+    "goal": "Predict which customers will churn next month."
+  },
+  "test_metrics": {
+    "accuracy": 0.8480909829406986,
+    "balanced_accuracy": 0.7665698760400748,
+    "f1_macro": 0.7873266463229296,
+    "minority_class": 1,
+    "minority_recall": 0.5938461538461538,
+    "minority_precision": 0.7782258064516129,
+    "minority_f1": 0.6736474694589878,
+    "majority_baseline_accuracy": 0.7359870024370431,
+    "predicted_majority_share": 0.7985377741673436,
+    "primary_name": "Balanced accuracy",
+    "primary": 0.7665698760400748,
+    "roc_auc": 0.8734114450670741,
+    "pr_auc": 0.7762491447105093
+  },
+  "train_metrics": {
+    "accuracy": 1.0,
+    "balanced_accuracy": 1.0,
+    "f1_macro": 1.0,
+    "minority_class": 1,
+    "minority_recall": 1.0,
+    "minority_precision": 1.0,
+    "minority_f1": 1.0,
+    "majority_baseline_accuracy": 0.7450555405039285,
+    "predicted_majority_share": 0.7450555405039285,
+    "primary_name": "Balanced accuracy",
+    "primary": 1.0,
+    "roc_auc": 1.0,
+    "pr_auc": 1.0
+  },
+  "findings": [
+    {
+      "check_id": "CONT-001",
+      "category": "contamination",
+      "title": "Test feature rows also appear in the training data",
+      "severity": "high",
+      "confidence": 0.95,
+      "what": "37.0% of test rows (456 of 1231) have the same feature values as a training row. For these matched feature rows, the test label also appears with the training copy 100% of the time.",
+      "why": "Repeated examples across training and evaluation reduce the independence of the test set. Flexible models can memorise these examples, which can make the reported test score look better than performance on genuinely unseen cases.",
+      "fix": "Check why the same records appear on both sides of the split. When they are duplicate records, remove duplicates before splitting and create the train/test split again.",
+      "evidence": {
+        "test_rows_found_in_train": 456,
+        "share": 0.3704,
+        "train_unique_row_ratio": 0.83,
+        "large_possible_combination_space": true,
+        "matching_label_share": 1.0,
+        "matched_train_rows_have_conflicting_labels": false
+      },
+      "fix_action": null,
+      "category_label": "Train/test contamination"
+    },
+    {
+      "check_id": "CONT-002",
+      "category": "contamination",
+      "title": "The same 'customer_id' values appear in training and test data",
+      "severity": "high",
+      "confidence": 0.9,
+      "what": "99.3% of test rows belong to a 'customer_id' value that also appears in the training data (about 5.3 training rows per 'customer_id').",
+      "why": "'customer_id' is configured as the grouping column, so rows from the same group should stay on one side of a group-independent evaluation. The current overlap allows information about the same entity to appear in both training and test data.",
+      "fix": "Split by 'customer_id' with GroupShuffleSplit or GroupKFold so one group does not appear on both sides of the evaluation.",
+      "evidence": {
+        "group_column": "customer_id",
+        "explicitly_given": true,
+        "test_rows_with_seen_group": 0.993,
+        "rows_per_group": 5.3
+      },
+      "fix_action": {
+        "type": "group_split",
+        "group_col": "customer_id"
+      },
+      "category_label": "Train/test contamination"
+    },
+    {
+      "check_id": "CONT-003",
+      "category": "contamination",
+      "title": "Cross-validation does not respect groups",
+      "severity": "high",
+      "confidence": 0.85,
+      "what": "The code uses KFold on line 24, while the data requires validation that respects groups.",
+      "why": "Ordinary or time-only cross-validation can place rows from the same entity in both training and validation folds. That can make validation performance optimistic when the goal is group-independent generalization.",
+      "fix": "Use GroupKFold or StratifiedGroupKFold with groups=df['customer_id'].",
+      "evidence": {
+        "naive_cv_calls": [
+          {
+            "line": 24,
+            "name": "KFold"
+          }
+        ],
+        "mismatched_cv_calls": [],
+        "aware_cv_calls": [],
+        "time_columns": [],
+        "group_columns": [
+          "customer_id"
+        ],
+        "explicit_time_column": false,
+        "explicit_group_column": true,
+        "forecast_goal": true
+      },
+      "fix_action": null,
+      "category_label": "Train/test contamination"
+    },
+    {
+      "check_id": "OVERFIT-001",
+      "category": "overfitting",
+      "title": "A large train-test gap suggests overfitting",
+      "severity": "high",
+      "confidence": 0.85,
+      "what": "Balanced accuracy is 100.0% on training data and 76.7% on test data, a gap of 23.3%.",
+      "why": "A large gap is consistent with the model learning patterns that do not generalize to the test data. Data-quality or distribution problems can also increase this gap, so those findings should be checked before treating overfitting as the only cause.",
+      "fix": "First check whether train and test data are comparable. If they are, reduce model complexity: limit tree depth (max_depth); require more samples per leaf (min_samples_leaf). Tune changes with appropriate cross-validation.",
+      "evidence": {
+        "train_score": 1.0,
+        "test_score": 0.7666,
+        "gap": 0.2334,
+        "metric": "Balanced accuracy"
+      },
+      "fix_action": {
+        "type": "regularize"
+      },
+      "category_label": "Overfitting"
+    }
+  ],
+  "checks": [
+    {
+      "check_id": "DQ-000",
+      "name": "Model runs on the data",
+      "category": "data_quality",
+      "description": "Checks that the model can make predictions on the provided data.",
+      "status": "passed",
+      "note": ""
+    },
+    {
+      "check_id": "DQ-001",
+      "name": "Missing values handled differently in train and test",
+      "category": "data_quality",
+      "description": "Compares missing-value rates per column between training and test data.",
+      "status": "passed",
+      "note": ""
+    },
+    {
+      "check_id": "DQ-002",
+      "name": "Missing values disguised as numbers",
+      "category": "data_quality",
+      "description": "Finds placeholder codes such as -999 or 9999 that can stand in for unknown values.",
+      "status": "passed",
+      "note": ""
+    },
+    {
+      "check_id": "DQ-003",
+      "name": "New categories that only appear in test data",
+      "category": "data_quality",
+      "description": "Lists text categories in the test data that do not appear in the training data.",
+      "status": "skipped",
+      "note": "No text/category columns."
+    },
+    {
+      "check_id": "DQ-004",
+      "name": "Category codes that mean different things in train and test",
+      "category": "data_quality",
+      "description": "Checks whether number-coded categories behave differently between training and test data and whether a remapping explains the difference.",
+      "status": "passed",
+      "note": ""
+    },
+    {
+      "check_id": "DQ-005",
+      "name": "Test data looks different from training data",
+      "category": "data_quality",
+      "description": "Measures numeric distribution shift between training and test data with PSI.",
+      "status": "passed",
+      "note": ""
+    },
+    {
+      "check_id": "LEAK-001",
+      "name": "Columns that give away the answer",
+      "category": "leakage",
+      "description": "Tests every feature on its own. A feature with unusually high test skill can be a target proxy and needs a timing or meaning check.",
+      "status": "passed",
+      "note": ""
+    },
+    {
+      "check_id": "LEAK-002",
+      "name": "Preprocessing that learns from the test data",
+      "category": "leakage",
+      "description": "Checks whether fitted preprocessing statistics match train + test data instead of training data only, and checks for full-data scaling fingerprints.",
+      "status": "passed",
+      "note": ""
+    },
+    {
+      "check_id": "LEAK-003",
+      "name": "Leaky steps in the training code",
+      "category": "leakage",
+      "description": "Reads the training script or notebook without running it and flags preprocessing fitted before evaluation, fitted on test data, or whole-dataset imputation.",
+      "status": "passed",
+      "note": ""
+    },
+    {
+      "check_id": "LEAK-004",
+      "name": "Training on the future (time leakage)",
+      "category": "leakage",
+      "description": "Checks whether training and test periods overlap when time order matters.",
+      "status": "skipped",
+      "note": "The data has no date/time column."
+    },
+    {
+      "check_id": "LEAK-005",
+      "name": "ID columns used as features",
+      "category": "leakage",
+      "description": "Flags likely row or entity identifiers that the model uses as features.",
+      "status": "passed",
+      "note": ""
+    },
+    {
+      "check_id": "CONT-001",
+      "name": "Same rows in training and test data",
+      "category": "contamination",
+      "description": "Looks for test feature rows that also appear in the training data.",
+      "status": "flagged",
+      "note": ""
+    },
+    {
+      "check_id": "CONT-002",
+      "name": "Same people/entities in training and test data",
+      "category": "contamination",
+      "description": "Checks whether repeated customer, patient, device, or other group values appear on both sides of a split.",
+      "status": "flagged",
+      "note": ""
+    },
+    {
+      "check_id": "CONT-003",
+      "name": "Cross-validation that ignores groups or time",
+      "category": "contamination",
+      "description": "Reads the training code and checks whether validation respects repeated groups or time order when those structures matter.",
+      "status": "flagged",
+      "note": ""
+    },
+    {
+      "check_id": "METRIC-001",
+      "name": "Accuracy hiding poor results on rare cases",
+      "category": "metrics",
+      "description": "On imbalanced classification data, checks whether accuracy is used as the main reported metric and compares it with rare-class performance.",
+      "status": "skipped",
+      "note": "Classes are reasonably balanced (smallest training class = 25.5%)."
+    },
+    {
+      "check_id": "OVERFIT-001",
+      "name": "Much better on training data than on test data",
+      "category": "overfitting",
+      "description": "Compares the model's primary score on training and test data.",
+      "status": "flagged",
+      "note": ""
+    },
+    {
+      "check_id": "OVERFIT-002",
+      "name": "Suspiciously perfect test score",
+      "category": "overfitting",
+      "description": "Flags near-perfect test scores that deserve a leakage or contamination review.",
+      "status": "passed",
+      "note": ""
+    },
+    {
+      "check_id": "IMB-001",
+      "name": "Model ignores the rare class",
+      "category": "imbalance",
+      "description": "Checks whether the model collapses toward the most common class or misses whole classes.",
+      "status": "passed",
+      "note": ""
+    },
+    {
+      "check_id": "IMB-002",
+      "name": "Imbalanced data with no counter-measure",
+      "category": "imbalance",
+      "description": "When one training class is rare, checks whether the model or training code uses class weighting, resampling, or sample weights.",
+      "status": "skipped",
+      "note": "Smallest class is 25.5% of the training data; this check treats that as outside severe imbalance."
+    }
+  ],
+  "fix": {
+    "applied": [
+      {
+        "change": "Re-splits by 'customer_id' so each customer id is only in training or only in test.",
+        "because": [
+          "CONT-002"
+        ]
+      },
+      {
+        "change": "Gives the rare class extra weight (class_weight='balanced').",
+        "because": [
+          "IMB-001"
+        ]
+      },
+      {
+        "change": "Makes the estimator more regularized: max_depth=6, min_samples_leaf=10.",
+        "because": [
+          "OVERFIT-001"
+        ]
+      },
+      {
+        "change": "Builds train-only preprocessing for the reference model: fills missing values, scales numeric columns, and one-hot encodes categorical columns with unknown-category handling.",
+        "because": []
+      }
+    ],
+    "rounds": [
+      {
+        "round": 1,
+        "changes": [
+          {
+            "change": "Re-splits by 'customer_id' so each customer id is only in training or only in test.",
+            "because": [
+              "CONT-002"
+            ]
+          },
+          {
+            "change": "Makes the estimator more regularized: max_depth=6, min_samples_leaf=10.",
+            "because": [
+              "OVERFIT-001"
+            ]
+          },
+          {
+            "change": "Builds train-only preprocessing for the reference model: fills missing values, scales numeric columns, and one-hot encodes categorical columns with unknown-category handling.",
+            "because": []
+          }
+        ],
+        "reaudit": [
+          {
+            "check_id": "IMB-001",
+            "title": "The model almost always predicts '0'",
+            "severity": "critical"
+          }
+        ]
+      },
+      {
+        "round": 2,
+        "changes": [
+          {
+            "change": "Gives the rare class extra weight (class_weight='balanced').",
+            "because": [
+              "IMB-001"
+            ]
+          }
+        ],
+        "reaudit": []
+      }
+    ],
+    "eval_rows_changed": true,
+    "model_rebuilt": true,
+    "reporting_changed": false,
+    "not_fixable": [],
+    "before_test_metrics": {
+      "accuracy": 0.8480909829406986,
+      "balanced_accuracy": 0.7665698760400748,
+      "f1_macro": 0.7873266463229296,
+      "minority_class": 1,
+      "minority_recall": 0.5938461538461538,
+      "minority_precision": 0.7782258064516129,
+      "minority_f1": 0.6736474694589878,
+      "majority_baseline_accuracy": 0.7359870024370431,
+      "predicted_majority_share": 0.7985377741673436,
+      "primary_name": "Balanced accuracy",
+      "primary": 0.7665698760400748,
+      "roc_auc": 0.8734114450670741,
+      "pr_auc": 0.7762491447105093
+    },
+    "after_test_metrics": {
+      "accuracy": 0.7093949044585988,
+      "balanced_accuracy": 0.6925782548727217,
+      "f1_macro": 0.6641502108035443,
+      "minority_class": 1,
+      "minority_recall": 0.6574923547400612,
+      "minority_precision": 0.4594017094017094,
+      "minority_f1": 0.5408805031446541,
+      "majority_baseline_accuracy": 0.7396496815286624,
+      "predicted_majority_share": 0.6273885350318471,
+      "primary_name": "Balanced accuracy",
+      "primary": 0.6925782548727217,
+      "roc_auc": 0.7700200472047481,
+      "pr_auc": 0.5729841128583422
+    },
+    "before_train_metrics": {
+      "accuracy": 1.0,
+      "balanced_accuracy": 1.0,
+      "f1_macro": 1.0,
+      "minority_class": 1,
+      "minority_recall": 1.0,
+      "minority_precision": 1.0,
+      "minority_f1": 1.0,
+      "majority_baseline_accuracy": 0.7450555405039285,
+      "predicted_majority_share": 0.7450555405039285,
+      "primary_name": "Balanced accuracy",
+      "primary": 1.0,
+      "roc_auc": 1.0,
+      "pr_auc": 1.0
+    },
+    "after_train_metrics": {
+      "accuracy": 0.7217675941080196,
+      "balanced_accuracy": 0.7316340792758722,
+      "f1_macro": 0.6862144199785176,
+      "minority_class": 1,
+      "minority_recall": 0.751863684771033,
+      "minority_precision": 0.47287340924313465,
+      "minority_f1": 0.5805921052631579,
+      "majority_baseline_accuracy": 0.7438625204582652,
+      "predicted_majority_share": 0.5927441352973268,
+      "primary_name": "Balanced accuracy",
+      "primary": 0.7316340792758722,
+      "roc_auc": 0.8152049496749463,
+      "pr_auc": 0.6401278756314913
+    },
+    "issues_before": 4,
+    "issues_after": 0,
+    "not_open_after_update": [
+      "CONT-001",
+      "CONT-002",
+      "CONT-003",
+      "OVERFIT-001"
+    ],
+    "remaining": [],
+    "error": null
+  }
+}

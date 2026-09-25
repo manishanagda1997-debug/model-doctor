@@ -1,0 +1,12 @@
+{
+  "model": "model.joblib",
+  "train": "train.csv",
+  "test": "test.csv",
+  "code": "train_pipeline.py",
+  "target": "high_demand",
+  "time_col": "date",
+  "id_cols": [
+    "store_id"
+  ],
+  "goal": "Forecast whether tomorrow will be a high-demand day for each store."
+}

@@ -1,0 +1,523 @@
+{
+  "created": "2026-09-25 06:36",
+  "health_score": 30,
+  "verdict": "High audit risk",
+  "counts": {
+    "critical": 0,
+    "high": 4,
+    "medium": 1,
+    "low": 1
+  },
+  "coverage": {
+    "total": 19,
+    "run": 15,
+    "not_applicable": 4,
+    "errors": 0
+  },
+  "setup": {
+    "model": "HistGradientBoostingClassifier",
+    "task": "classification",
+    "target": "high_demand",
+    "train_rows": 6950,
+    "test_rows": 1738,
+    "features": 6,
+    "classes": {
+      "0": 0.6954,
+      "1": 0.3046
+    },
+    "time_col": "date",
+    "group_col": null,
+    "reported_metric": null,
+    "training_code_provided": true,
+    "goal": "Forecast whether tomorrow will be a high-demand day for each store."
+  },
+  "test_metrics": {
+    "accuracy": 0.7583429228998849,
+    "balanced_accuracy": 0.6085813891123626,
+    "f1_macro": 0.6152118770044342,
+    "minority_class": 1,
+    "minority_recall": 0.2606060606060606,
+    "minority_precision": 0.7049180327868853,
+    "minority_f1": 0.3805309734513274,
+    "majority_baseline_accuracy": 0.7151898734177216,
+    "predicted_majority_share": 0.8947065592635213,
+    "primary_name": "Balanced accuracy",
+    "primary": 0.6085813891123626,
+    "roc_auc": 0.8147972077980123,
+    "pr_auc": 0.6292669888982669
+  },
+  "train_metrics": {
+    "accuracy": 0.9683453237410072,
+    "balanced_accuracy": 0.9594542753962508,
+    "f1_macro": 0.9623980677771262,
+    "minority_class": 1,
+    "minority_recall": 0.9367028814359943,
+    "minority_precision": 0.958434026099565,
+    "minority_f1": 0.9474438604873388,
+    "majority_baseline_accuracy": 0.6953956834532374,
+    "predicted_majority_share": 0.7023021582733813,
+    "primary_name": "Balanced accuracy",
+    "primary": 0.9594542753962508,
+    "roc_auc": 0.996944180308169,
+    "pr_auc": 0.993363514107383
+  },
+  "findings": [
+    {
+      "check_id": "DQ-004",
+      "category": "data_quality",
+      "title": "Category codes in 'store_type' do not match between training and test data",
+      "severity": "high",
+      "confidence": 0.9,
+      "what": "In 'store_type', the numeric codes behave differently between training and test data. The two sets fit much better when 3 codes are matched differently (test code -> training code: 0->2, 1->0, 2->1). The training code also converts this column to numbers separately on the test data (line 27: pd.factorize). Reading the codes with the suggested mapping changes the model's test balanced accuracy by +30.8 points.",
+      "why": "This pattern can appear when categories turn into numbers separately for training and test data, such as fitting LabelEncoder twice or using pd.factorize separately. The same number can then represent different categories, which changes predictions.",
+      "fix": "Fit one encoder on the training data and reuse it everywhere, or use OneHotEncoder(handle_unknown='ignore') inside the Pipeline. Re-create this column from the original category values.",
+      "evidence": {
+        "column": "store_type",
+        "suggested_mapping_test_to_train": {
+          "0": "2",
+          "1": "0",
+          "2": "1"
+        },
+        "p_value_as_is": 0.0,
+        "p_value_after_remap": 0.0358,
+        "note": "The p-value after remapping comes from a searched mapping, so it is a screening signal.",
+        "code_evidence": true,
+        "score_change_if_remapped": 0.3079
+      },
+      "fix_action": {
+        "type": "exclude_untrusted_column",
+        "columns": [
+          "store_type"
+        ]
+      },
+      "category_label": "Data quality"
+    },
+    {
+      "check_id": "LEAK-004",
+      "category": "leakage",
+      "title": "Training data includes dates after the test period begins",
+      "severity": "high",
+      "confidence": 0.9,
+      "what": "99.9% of training rows are dated after the first test date (train: 2023-01-08 to 2024-12-31, test: 2023-01-08 to 2024-12-31). The training and test periods overlap.",
+      "why": "When the goal depends on time order, evaluation should reproduce the information available at prediction time. Training on later dates can make the test score too optimistic.",
+      "fix": "Sort by 'date', train on the earlier period, and test on the most recent period. Use TimeSeriesSplit for cross-validation when appropriate.",
+      "evidence": {
+        "time_column": "date",
+        "explicitly_given": true,
+        "forecast_goal": true,
+        "train_rows_after_first_test_date": 0.999
+      },
+      "fix_action": {
+        "type": "time_split",
+        "time_col": "date"
+      },
+      "category_label": "Data leakage"
+    },
+    {
+      "check_id": "CONT-003",
+      "category": "contamination",
+      "title": "Cross-validation does not respect time order",
+      "severity": "high",
+      "confidence": 0.85,
+      "what": "The code uses KFold on line 30, while the data requires validation that respects time order.",
+      "why": "Ordinary or group-only cross-validation can train on rows that occur after the validation period. That makes the validation score optimistic for a future-looking prediction problem.",
+      "fix": "Use TimeSeriesSplit or another forward-chaining validation design that trains on earlier periods and validates on later periods.",
+      "evidence": {
+        "naive_cv_calls": [
+          {
+            "line": 30,
+            "name": "KFold"
+          }
+        ],
+        "mismatched_cv_calls": [],
+        "aware_cv_calls": [],
+        "time_columns": [
+          "date"
+        ],
+        "group_columns": [],
+        "explicit_time_column": true,
+        "explicit_group_column": false,
+        "forecast_goal": true
+      },
+      "fix_action": null,
+      "category_label": "Train/test contamination"
+    },
+    {
+      "check_id": "CONT-003",
+      "category": "contamination",
+      "title": "The train/test split shuffles time-ordered data",
+      "severity": "high",
+      "confidence": 0.85,
+      "what": "train_test_split on line 22 shuffles rows, while 'date' is used as the time structure for this prediction problem.",
+      "why": "Shuffling can place later observations in training while earlier observations remain in test data. For future-looking evaluation, that mixes past and future.",
+      "fix": "Sort by 'date' and create an earlier-training/later-test split. Use TimeSeriesSplit for cross-validation when appropriate.",
+      "evidence": {
+        "split_line": 22,
+        "time_column": "date",
+        "explicitly_given": true,
+        "forecast_goal": true
+      },
+      "fix_action": {
+        "type": "time_split",
+        "time_col": "date"
+      },
+      "category_label": "Train/test contamination"
+    },
+    {
+      "check_id": "OVERFIT-001",
+      "category": "overfitting",
+      "title": "A large train-test gap suggests overfitting",
+      "severity": "medium",
+      "confidence": 0.55,
+      "what": "Balanced accuracy is 95.9% on training data and 60.9% on test data, a gap of 35.1%.",
+      "why": "A large gap is consistent with the model learning patterns that do not generalize to the test data. Data-quality or distribution problems can also increase this gap, so those findings should be checked before treating overfitting as the only cause. Another finding in this audit (\"Category codes in 'store_type' do not match between training and test data\") can also increase the train-test gap by reducing test performance. This makes overfitting a less certain explanation.",
+      "fix": "First check whether train and test data are comparable. If they are, reduce model complexity: limit tree depth (max_depth). Tune changes with appropriate cross-validation.",
+      "evidence": {
+        "train_score": 0.9595,
+        "test_score": 0.6086,
+        "gap": 0.3509,
+        "metric": "Balanced accuracy",
+        "likely_other_cause": "Category codes in 'store_type' do not match between training and test data"
+      },
+      "fix_action": {
+        "type": "regularize"
+      },
+      "category_label": "Overfitting"
+    },
+    {
+      "check_id": "LEAK-003",
+      "category": "leakage",
+      "title": "Missing values are filled using the whole dataset",
+      "severity": "low",
+      "confidence": 0.8,
+      "what": "The code fills missing values with a mean, median, or mode computed before the evaluation split (line 19).",
+      "why": "The fill value uses information from rows that later act as validation or test data, so the evaluation is not fully independent.",
+      "fix": "Use an imputer inside the Pipeline so its values come from training rows only.",
+      "evidence": {
+        "lines": [
+          {
+            "line": 19,
+            "code": "df['temperature'].fillna(df['temperature'].mean())"
+          }
+        ]
+      },
+      "fix_action": {
+        "type": "rebuild_preprocessing"
+      },
+      "category_label": "Data leakage"
+    }
+  ],
+  "checks": [
+    {
+      "check_id": "DQ-000",
+      "name": "Model runs on the data",
+      "category": "data_quality",
+      "description": "Checks that the model can make predictions on the provided data.",
+      "status": "passed",
+      "note": ""
+    },
+    {
+      "check_id": "DQ-001",
+      "name": "Missing values handled differently in train and test",
+      "category": "data_quality",
+      "description": "Compares missing-value rates per column between training and test data.",
+      "status": "passed",
+      "note": ""
+    },
+    {
+      "check_id": "DQ-002",
+      "name": "Missing values disguised as numbers",
+      "category": "data_quality",
+      "description": "Finds placeholder codes such as -999 or 9999 that can stand in for unknown values.",
+      "status": "passed",
+      "note": ""
+    },
+    {
+      "check_id": "DQ-003",
+      "name": "New categories that only appear in test data",
+      "category": "data_quality",
+      "description": "Lists text categories in the test data that do not appear in the training data.",
+      "status": "skipped",
+      "note": "No text/category columns."
+    },
+    {
+      "check_id": "DQ-004",
+      "name": "Category codes that mean different things in train and test",
+      "category": "data_quality",
+      "description": "Checks whether number-coded categories behave differently between training and test data and whether a remapping explains the difference.",
+      "status": "flagged",
+      "note": ""
+    },
+    {
+      "check_id": "DQ-005",
+      "name": "Test data looks different from training data",
+      "category": "data_quality",
+      "description": "Measures numeric distribution shift between training and test data with PSI.",
+      "status": "passed",
+      "note": ""
+    },
+    {
+      "check_id": "LEAK-001",
+      "name": "Columns that give away the answer",
+      "category": "leakage",
+      "description": "Tests every feature on its own. A feature with unusually high test skill can be a target proxy and needs a timing or meaning check.",
+      "status": "passed",
+      "note": ""
+    },
+    {
+      "check_id": "LEAK-002",
+      "name": "Preprocessing that learns from the test data",
+      "category": "leakage",
+      "description": "Checks whether fitted preprocessing statistics match train + test data instead of training data only, and checks for full-data scaling fingerprints.",
+      "status": "passed",
+      "note": ""
+    },
+    {
+      "check_id": "LEAK-003",
+      "name": "Leaky steps in the training code",
+      "category": "leakage",
+      "description": "Reads the training script or notebook without running it and flags preprocessing fitted before evaluation, fitted on test data, or whole-dataset imputation.",
+      "status": "flagged",
+      "note": ""
+    },
+    {
+      "check_id": "LEAK-004",
+      "name": "Training on the future (time leakage)",
+      "category": "leakage",
+      "description": "Checks whether training and test periods overlap when time order matters.",
+      "status": "flagged",
+      "note": ""
+    },
+    {
+      "check_id": "LEAK-005",
+      "name": "ID columns used as features",
+      "category": "leakage",
+      "description": "Flags likely row or entity identifiers that the model uses as features.",
+      "status": "passed",
+      "note": ""
+    },
+    {
+      "check_id": "CONT-001",
+      "name": "Same rows in training and test data",
+      "category": "contamination",
+      "description": "Looks for test feature rows that also appear in the training data.",
+      "status": "passed",
+      "note": ""
+    },
+    {
+      "check_id": "CONT-002",
+      "name": "Same people/entities in training and test data",
+      "category": "contamination",
+      "description": "Checks whether repeated customer, patient, device, or other group values appear on both sides of a split.",
+      "status": "skipped",
+      "note": "The data has no repeated group or ID column to compare."
+    },
+    {
+      "check_id": "CONT-003",
+      "name": "Cross-validation that ignores groups or time",
+      "category": "contamination",
+      "description": "Reads the training code and checks whether validation respects repeated groups or time order when those structures matter.",
+      "status": "flagged",
+      "note": ""
+    },
+    {
+      "check_id": "METRIC-001",
+      "name": "Accuracy hiding poor results on rare cases",
+      "category": "metrics",
+      "description": "On imbalanced classification data, checks whether accuracy is used as the main reported metric and compares it with rare-class performance.",
+      "status": "skipped",
+      "note": "Classes are reasonably balanced (smallest training class = 30.5%)."
+    },
+    {
+      "check_id": "OVERFIT-001",
+      "name": "Much better on training data than on test data",
+      "category": "overfitting",
+      "description": "Compares the model's primary score on training and test data.",
+      "status": "flagged",
+      "note": ""
+    },
+    {
+      "check_id": "OVERFIT-002",
+      "name": "Suspiciously perfect test score",
+      "category": "overfitting",
+      "description": "Flags near-perfect test scores that deserve a leakage or contamination review.",
+      "status": "passed",
+      "note": ""
+    },
+    {
+      "check_id": "IMB-001",
+      "name": "Model ignores the rare class",
+      "category": "imbalance",
+      "description": "Checks whether the model collapses toward the most common class or misses whole classes.",
+      "status": "passed",
+      "note": ""
+    },
+    {
+      "check_id": "IMB-002",
+      "name": "Imbalanced data with no counter-measure",
+      "category": "imbalance",
+      "description": "When one training class is rare, checks whether the model or training code uses class weighting, resampling, or sample weights.",
+      "status": "skipped",
+      "note": "Smallest class is 30.5% of the training data; this check treats that as outside severe imbalance."
+    }
+  ],
+  "fix": {
+    "applied": [
+      {
+        "change": "Excludes 'store_type' from the reference rebuild because the category codes cannot be trusted. Re-encode the original category values before adding the column back.",
+        "because": [
+          "DQ-004"
+        ]
+      },
+      {
+        "change": "Re-splits by date on 'date': trains on earlier rows and tests on the most recent rows.",
+        "because": [
+          "CONT-003",
+          "LEAK-004"
+        ]
+      },
+      {
+        "change": "Makes the estimator more regularized: max_depth=6.",
+        "because": [
+          "OVERFIT-001"
+        ]
+      },
+      {
+        "change": "Builds train-only preprocessing for the reference model: fills missing values, scales numeric columns, and one-hot encodes categorical columns with unknown-category handling.",
+        "because": []
+      }
+    ],
+    "rounds": [
+      {
+        "round": 1,
+        "changes": [
+          {
+            "change": "Excludes 'store_type' from the reference rebuild because the category codes cannot be trusted. Re-encode the original category values before adding the column back.",
+            "because": [
+              "DQ-004"
+            ]
+          },
+          {
+            "change": "Re-splits by date on 'date': trains on earlier rows and tests on the most recent rows.",
+            "because": [
+              "CONT-003",
+              "LEAK-004"
+            ]
+          },
+          {
+            "change": "Makes the estimator more regularized: max_depth=6.",
+            "because": [
+              "OVERFIT-001"
+            ]
+          },
+          {
+            "change": "Builds train-only preprocessing for the reference model: fills missing values, scales numeric columns, and one-hot encodes categorical columns with unknown-category handling.",
+            "because": []
+          }
+        ],
+        "reaudit": [
+          {
+            "check_id": "DQ-005",
+            "title": "Some numeric columns look different in the test data",
+            "severity": "low"
+          }
+        ]
+      }
+    ],
+    "eval_rows_changed": true,
+    "model_rebuilt": true,
+    "reporting_changed": false,
+    "not_fixable": [
+      "Re-encode 'store_type' from the original category values with one encoder that learns from training data only, then add it back."
+    ],
+    "before_test_metrics": {
+      "accuracy": 0.7583429228998849,
+      "balanced_accuracy": 0.6085813891123626,
+      "f1_macro": 0.6152118770044342,
+      "minority_class": 1,
+      "minority_recall": 0.2606060606060606,
+      "minority_precision": 0.7049180327868853,
+      "minority_f1": 0.3805309734513274,
+      "majority_baseline_accuracy": 0.7151898734177216,
+      "predicted_majority_share": 0.8947065592635213,
+      "primary_name": "Balanced accuracy",
+      "primary": 0.6085813891123626,
+      "roc_auc": 0.8147972077980123,
+      "pr_auc": 0.6292669888982669
+    },
+    "after_test_metrics": {
+      "accuracy": 0.9177215189873418,
+      "balanced_accuracy": 0.9103999923531811,
+      "f1_macro": 0.9027980552884116,
+      "minority_class": 1,
+      "minority_recall": 0.892578125,
+      "minority_precision": 0.8385321100917431,
+      "minority_f1": 0.8647114474929044,
+      "majority_baseline_accuracy": 0.7054085155350979,
+      "predicted_majority_share": 0.6864211737629459,
+      "primary_name": "Balanced accuracy",
+      "primary": 0.9103999923531811,
+      "roc_auc": 0.9738590308931485,
+      "pr_auc": 0.9417057666687876
+    },
+    "before_train_metrics": {
+      "accuracy": 0.9683453237410072,
+      "balanced_accuracy": 0.9594542753962508,
+      "f1_macro": 0.9623980677771262,
+      "minority_class": 1,
+      "minority_recall": 0.9367028814359943,
+      "minority_precision": 0.958434026099565,
+      "minority_f1": 0.9474438604873388,
+      "majority_baseline_accuracy": 0.6953956834532374,
+      "predicted_majority_share": 0.7023021582733813,
+      "primary_name": "Balanced accuracy",
+      "primary": 0.9594542753962508,
+      "roc_auc": 0.996944180308169,
+      "pr_auc": 0.993363514107383
+    },
+    "after_train_metrics": {
+      "accuracy": 0.9365467625899281,
+      "balanced_accuracy": 0.9207854688267059,
+      "f1_macro": 0.924157464144516,
+      "minority_class": 1,
+      "minority_recall": 0.8809523809523809,
+      "minority_precision": 0.9064184223419892,
+      "minority_f1": 0.893503984544796,
+      "majority_baseline_accuracy": 0.697841726618705,
+      "predicted_majority_share": 0.7063309352517986,
+      "primary_name": "Balanced accuracy",
+      "primary": 0.9207854688267059,
+      "roc_auc": 0.9863852233676976,
+      "pr_auc": 0.9714535868945544
+    },
+    "issues_before": 6,
+    "issues_after": 1,
+    "not_open_after_update": [
+      "CONT-003",
+      "DQ-004",
+      "LEAK-003",
+      "LEAK-004",
+      "OVERFIT-001"
+    ],
+    "remaining": [
+      {
+        "check_id": "DQ-005",
+        "category": "data_quality",
+        "title": "Some numeric columns look different in the test data",
+        "severity": "low",
+        "confidence": 0.5,
+        "what": "These numeric columns shift noticeably between training and test data (PSI at or above 0.25): 'month' (5.135).",
+        "why": "A change in input distribution can reduce model quality. The change can be valid, such as a newer time period, or it can point to a data-processing problem.",
+        "fix": "Check whether the shift is expected, compare the data source and processing steps, and monitor these columns after deployment.",
+        "evidence": {
+          "psi_by_column": {
+            "month": 5.135
+          }
+        },
+        "fix_action": null,
+        "category_label": "Data quality"
+      }
+    ],
+    "error": null
+  }
+}

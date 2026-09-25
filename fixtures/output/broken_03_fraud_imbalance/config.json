@@ -1,0 +1,9 @@
+{
+  "model": "model.joblib",
+  "train": "train.csv",
+  "test": "test.csv",
+  "code": "train_pipeline.py",
+  "target": "is_fraud",
+  "reported_metric": "accuracy",
+  "goal": "Flag fraudulent card transactions in real time."
+}

@@ -1,0 +1,264 @@
+{
+  "created": "2026-09-25 06:36",
+  "health_score": 100,
+  "verdict": "No issues detected in completed checks",
+  "counts": {
+    "critical": 0,
+    "high": 0,
+    "medium": 0,
+    "low": 0
+  },
+  "coverage": {
+    "total": 19,
+    "run": 14,
+    "not_applicable": 5,
+    "errors": 0
+  },
+  "setup": {
+    "model": "Pipeline: ColumnTransformer -> RandomForestClassifier",
+    "task": "classification",
+    "target": "left_company",
+    "train_rows": 2250,
+    "test_rows": 750,
+    "features": 6,
+    "classes": {
+      "0": 0.768,
+      "1": 0.232
+    },
+    "time_col": null,
+    "group_col": null,
+    "reported_metric": "f1",
+    "training_code_provided": true,
+    "goal": "Predict which employees are likely to leave in the next year."
+  },
+  "test_metrics": {
+    "accuracy": 0.668,
+    "balanced_accuracy": 0.649485153256705,
+    "f1_macro": 0.6110436526697922,
+    "minority_class": 1,
+    "minority_recall": 0.6149425287356322,
+    "minority_precision": 0.370242214532872,
+    "minority_f1": 0.46220302375809935,
+    "majority_baseline_accuracy": 0.768,
+    "predicted_majority_share": 0.6146666666666667,
+    "primary_name": "Balanced accuracy",
+    "primary": 0.649485153256705,
+    "roc_auc": 0.7046914910600255,
+    "pr_auc": 0.40886202940907723
+  },
+  "train_metrics": {
+    "accuracy": 0.7186666666666667,
+    "balanced_accuracy": 0.7232499201787994,
+    "f1_macro": 0.6714450259533631,
+    "minority_class": 1,
+    "minority_recall": 0.7318007662835249,
+    "minority_precision": 0.43657142857142855,
+    "minority_f1": 0.5468861846814602,
+    "majority_baseline_accuracy": 0.768,
+    "predicted_majority_share": 0.6111111111111112,
+    "primary_name": "Balanced accuracy",
+    "primary": 0.7232499201787994,
+    "roc_auc": 0.803194178373776,
+    "pr_auc": 0.5622586250285136
+  },
+  "findings": [],
+  "checks": [
+    {
+      "check_id": "DQ-000",
+      "name": "Model runs on the data",
+      "category": "data_quality",
+      "description": "Checks that the model can make predictions on the provided data.",
+      "status": "passed",
+      "note": ""
+    },
+    {
+      "check_id": "DQ-001",
+      "name": "Missing values handled differently in train and test",
+      "category": "data_quality",
+      "description": "Compares missing-value rates per column between training and test data.",
+      "status": "passed",
+      "note": ""
+    },
+    {
+      "check_id": "DQ-002",
+      "name": "Missing values disguised as numbers",
+      "category": "data_quality",
+      "description": "Finds placeholder codes such as -999 or 9999 that can stand in for unknown values.",
+      "status": "passed",
+      "note": ""
+    },
+    {
+      "check_id": "DQ-003",
+      "name": "New categories that only appear in test data",
+      "category": "data_quality",
+      "description": "Lists text categories in the test data that do not appear in the training data.",
+      "status": "passed",
+      "note": ""
+    },
+    {
+      "check_id": "DQ-004",
+      "name": "Category codes that mean different things in train and test",
+      "category": "data_quality",
+      "description": "Checks whether number-coded categories behave differently between training and test data and whether a remapping explains the difference.",
+      "status": "passed",
+      "note": ""
+    },
+    {
+      "check_id": "DQ-005",
+      "name": "Test data looks different from training data",
+      "category": "data_quality",
+      "description": "Measures numeric distribution shift between training and test data with PSI.",
+      "status": "passed",
+      "note": ""
+    },
+    {
+      "check_id": "LEAK-001",
+      "name": "Columns that give away the answer",
+      "category": "leakage",
+      "description": "Tests every feature on its own. A feature with unusually high test skill can be a target proxy and needs a timing or meaning check.",
+      "status": "passed",
+      "note": ""
+    },
+    {
+      "check_id": "LEAK-002",
+      "name": "Preprocessing that learns from the test data",
+      "category": "leakage",
+      "description": "Checks whether fitted preprocessing statistics match train + test data instead of training data only, and checks for full-data scaling fingerprints.",
+      "status": "passed",
+      "note": ""
+    },
+    {
+      "check_id": "LEAK-003",
+      "name": "Leaky steps in the training code",
+      "category": "leakage",
+      "description": "Reads the training script or notebook without running it and flags preprocessing fitted before evaluation, fitted on test data, or whole-dataset imputation.",
+      "status": "passed",
+      "note": ""
+    },
+    {
+      "check_id": "LEAK-004",
+      "name": "Training on the future (time leakage)",
+      "category": "leakage",
+      "description": "Checks whether training and test periods overlap when time order matters.",
+      "status": "skipped",
+      "note": "The data has no date/time column."
+    },
+    {
+      "check_id": "LEAK-005",
+      "name": "ID columns used as features",
+      "category": "leakage",
+      "description": "Flags likely row or entity identifiers that the model uses as features.",
+      "status": "passed",
+      "note": ""
+    },
+    {
+      "check_id": "CONT-001",
+      "name": "Same rows in training and test data",
+      "category": "contamination",
+      "description": "Looks for test feature rows that also appear in the training data.",
+      "status": "passed",
+      "note": ""
+    },
+    {
+      "check_id": "CONT-002",
+      "name": "Same people/entities in training and test data",
+      "category": "contamination",
+      "description": "Checks whether repeated customer, patient, device, or other group values appear on both sides of a split.",
+      "status": "skipped",
+      "note": "The data has no repeated group or ID column to compare."
+    },
+    {
+      "check_id": "CONT-003",
+      "name": "Cross-validation that ignores groups or time",
+      "category": "contamination",
+      "description": "Reads the training code and checks whether validation respects repeated groups or time order when those structures matter.",
+      "status": "skipped",
+      "note": "The audit has no confirmed group or time structure that requires special validation."
+    },
+    {
+      "check_id": "METRIC-001",
+      "name": "Accuracy hiding poor results on rare cases",
+      "category": "metrics",
+      "description": "On imbalanced classification data, checks whether accuracy is used as the main reported metric and compares it with rare-class performance.",
+      "status": "skipped",
+      "note": "Classes are reasonably balanced (smallest training class = 23.2%)."
+    },
+    {
+      "check_id": "OVERFIT-001",
+      "name": "Much better on training data than on test data",
+      "category": "overfitting",
+      "description": "Compares the model's primary score on training and test data.",
+      "status": "passed",
+      "note": ""
+    },
+    {
+      "check_id": "OVERFIT-002",
+      "name": "Suspiciously perfect test score",
+      "category": "overfitting",
+      "description": "Flags near-perfect test scores that deserve a leakage or contamination review.",
+      "status": "passed",
+      "note": ""
+    },
+    {
+      "check_id": "IMB-001",
+      "name": "Model ignores the rare class",
+      "category": "imbalance",
+      "description": "Checks whether the model collapses toward the most common class or misses whole classes.",
+      "status": "passed",
+      "note": ""
+    },
+    {
+      "check_id": "IMB-002",
+      "name": "Imbalanced data with no counter-measure",
+      "category": "imbalance",
+      "description": "When one training class is rare, checks whether the model or training code uses class weighting, resampling, or sample weights.",
+      "status": "skipped",
+      "note": "Smallest class is 23.2% of the training data; this check treats that as outside severe imbalance."
+    }
+  ],
+  "fix": {
+    "applied": [],
+    "rounds": [],
+    "eval_rows_changed": false,
+    "model_rebuilt": false,
+    "reporting_changed": false,
+    "not_fixable": [],
+    "before_test_metrics": {
+      "accuracy": 0.668,
+      "balanced_accuracy": 0.649485153256705,
+      "f1_macro": 0.6110436526697922,
+      "minority_class": 1,
+      "minority_recall": 0.6149425287356322,
+      "minority_precision": 0.370242214532872,
+      "minority_f1": 0.46220302375809935,
+      "majority_baseline_accuracy": 0.768,
+      "predicted_majority_share": 0.6146666666666667,
+      "primary_name": "Balanced accuracy",
+      "primary": 0.649485153256705,
+      "roc_auc": 0.7046914910600255,
+      "pr_auc": 0.40886202940907723
+    },
+    "after_test_metrics": null,
+    "before_train_metrics": {
+      "accuracy": 0.7186666666666667,
+      "balanced_accuracy": 0.7232499201787994,
+      "f1_macro": 0.6714450259533631,
+      "minority_class": 1,
+      "minority_recall": 0.7318007662835249,
+      "minority_precision": 0.43657142857142855,
+      "minority_f1": 0.5468861846814602,
+      "majority_baseline_accuracy": 0.768,
+      "predicted_majority_share": 0.6111111111111112,
+      "primary_name": "Balanced accuracy",
+      "primary": 0.7232499201787994,
+      "roc_auc": 0.803194178373776,
+      "pr_auc": 0.5622586250285136
+    },
+    "after_train_metrics": null,
+    "issues_before": 0,
+    "issues_after": 0,
+    "not_open_after_update": [],
+    "remaining": [],
+    "error": null
+  }
+}

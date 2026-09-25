@@ -1,0 +1,9 @@
+{
+  "model": "model.joblib",
+  "train": "train.csv",
+  "test": "test.csv",
+  "code": "train_pipeline.py",
+  "target": "left_company",
+  "reported_metric": "f1",
+  "goal": "Predict which employees are likely to leave in the next year."
+}

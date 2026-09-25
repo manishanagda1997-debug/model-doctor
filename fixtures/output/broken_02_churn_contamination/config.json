@@ -1,0 +1,10 @@
+{
+  "model": "model.joblib",
+  "train": "train.csv",
+  "test": "test.csv",
+  "code": "train_pipeline.py",
+  "target": "churned",
+  "group_col": "customer_id",
+  "reported_metric": "accuracy",
+  "goal": "Predict which customers will churn next month."
+}
